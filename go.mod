@@ -1,1 +1,1 @@
-module "github.com/koron-go/{{.Name}}"
+module github.com/koron-go/{{.Name}}
