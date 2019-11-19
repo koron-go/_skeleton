@@ -4,6 +4,8 @@ jobs:
   build:
     docker:
     - image: circleci/golang:latest
+      environment:
+        GO111MODULE: 'on'
     working_directory: /go/src/github.com/koron-go/{{.Name}}
     steps:
     - run: go version && go env
