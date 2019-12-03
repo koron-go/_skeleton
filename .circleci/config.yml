@@ -5,7 +5,7 @@ jobs:
     docker:
     - image: circleci/golang:latest
       environment:
-        GO111MODULE: 'on'
+        GO111MODULE: 'off'
     working_directory: /go/src/github.com/koron-go/{{.Name}}
     steps:
     - run: go version && go env
@@ -22,12 +22,6 @@ jobs:
     steps:
     - run: go version && go env
     - checkout
-    - run:
-        name: install latest git
-        command: |
-          echo "deb http://ftp.debian.org/debian stretch-backports main" | sudo tee -a /etc/apt/sources.list
-          sudo apt-get update
-          sudo apt-get -t stretch-backports install -y git
     - restore_cache:
         keys:
         - module-v1-{{ .Branch }}-{{ checksum "go.sum" }}
