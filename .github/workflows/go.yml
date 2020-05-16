@@ -22,3 +22,5 @@ jobs:
     - run: go test
 
     - run: go build
+
+# based on: github.com/koron-go/_skeleton/.github/workflows/go.yml
