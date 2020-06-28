@@ -1,3 +1,3 @@
-module github.com/koron-go/{{.Name}}
+module github.com/{{.Org}}/{{.Name}}
 
 go 1.14
