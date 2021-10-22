@@ -17,15 +17,11 @@ cover:
 	go tool cover -html tmp/_cover.out -o tmp/cover.html
 
 .PHONY: checkall
-checkall: vet lint staticcheck
+checkall: vet staticcheck
 
 .PHONY: vet
 vet:
 	go vet ./...
-
-.PHONY: lint
-lint:
-	golint ./...
 
 .PHONY: staticcheck
 staticcheck:
