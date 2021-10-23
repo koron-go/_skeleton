@@ -4,7 +4,11 @@ build:
 
 .PHONY: test
 test:
-	go test ./...
+	go test -gcflags '-e' ./...
+
+.PHONY: bench
+bench:
+	go test -bench ./...
 
 .PHONY: tags
 tags:
