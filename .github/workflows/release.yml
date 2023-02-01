@@ -15,17 +15,17 @@ jobs:
 
     steps:
 
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: 1.x
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install tools
       run: |
         mkdir -p $(go env GOPATH)/bin/
         go install github.com/Songmu/goxz/cmd/goxz@v0.9.1
-        go install github.com/tcnksm/ghr@v0.15.0
+        go install github.com/tcnksm/ghr@v0.16.0
 
     - name: Build release binaries
       run: |
