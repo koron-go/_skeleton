@@ -6,7 +6,7 @@ permissions:
   contents: write
 
 env:
-  GO_VERSION: '>=1.21.0'
+  GO_VERSION: '>=1.22.0'
   NAME: '{{.Name}}'
 
 jobs:
