@@ -1,3 +1,3 @@
 module github.com/{{.Org}}/{{.Name}}
 
-go 1.21
+go 1.23.11
