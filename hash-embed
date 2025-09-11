@@ -1,4 +1,18 @@
 #!/bin/bash
+#
+# Embed hash replaces `$Hash$` to `$Hash:{sha224sum}$`
+# When calculating the hash, `$Hash:...$` should be treated as `$Hash$`.
+#
+# Usage: hash-embed updatee-all
+#
+# Sub-commands
+#     calc {files}      calculate new hash value for files
+#     extract {files}   extract current hash value from files
+#     update {files}    update hash value in files
+#     list              list target files which have embeded hash
+#     calc-all          calc hash values for files w/ `$Hash$` tag
+#     extract-all       extract hash values from files w/ `$Hash$` tag
+#     update-all        update hash values in files w/ `$Hash$` tag
 
 set -eu
 
