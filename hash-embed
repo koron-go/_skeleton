@@ -1,0 +1,98 @@
+#!/bin/bash
+
+set -eu
+
+calc() {
+  sed -E -e 's/\$Hash:[^$]*\$/\$Hash\$/' "$1" | sha224sum | cut -f 1 -d ' '
+}
+
+extract() {
+  if [ "$1" == "hash-embed" ] ; then
+    hash="(skipped)"
+  elif [ -f "$1" ] ; then
+    hash=$(sed -nEr 's/.*\$Hash:([^$]*)\$.*/\1/p' "$1")
+    if [ -z "$hash" ] ; then
+      hash="(no hash)"
+    fi
+  else
+    hash="(not a file)"
+  fi
+  echo "$hash"
+}
+
+list() {
+  grep --exclude='hash-embed*' -lrE '\$Hash(:[^$]*)?\$'
+}
+
+update() {
+  old=$(extract "$1")
+  new=$(calc "$1")
+  if [ "$new" != "$old" ] ; then
+    echo -e "$f\n    Old: $old\n    New: $new"
+    sed -i.bak -E -e "s/\\\$Hash(:[^\\$]*)?\\$/\$Hash:${new}\$/" "$1"
+    rm -f "$1.bak"
+  fi
+}
+
+subcmd_calc() {
+  for f in "$@" ; do
+    hash=$(calc "$f")
+    printf "%-56s  %s\n" "$hash" "$f"
+  done
+}
+
+subcmd_extract() {
+  for f in "$@" ; do
+    hash=$(extract "$f")
+    printf "%-56s  %s\n" "$hash" "$f"
+  done
+}
+
+subcmd_list() {
+  list
+}
+
+subcmd_update() {
+  for f in "$@" ; do
+    update "$f"
+  done
+}
+
+subcmd_calc_all() {
+  subcmd_calc $(list)
+}
+
+subcmd_extract_all() {
+  subcmd_extract $(list)
+}
+
+subcmd_update_all() {
+  subcmd_update $(list)
+}
+
+case $1 in
+  calc)
+    shift
+    subcmd_calc "$@"
+    ;;
+  extract)
+    shift
+    subcmd_extract "$@"
+    ;;
+  update)
+    shift
+    subcmd_update "$@"
+    ;;
+  list)
+    subcmd_list
+    ;;
+  calc-all)
+    subcmd_calc_all
+    ;;
+  extract-all)
+    subcmd_extract_all
+    ;;
+  update-all)
+    subcmd_update_all
+    ;;
+esac

@@ -42,4 +42,5 @@ find . -type f -name \*.bak | xargs rm
 if [ "$DELETE" = "yes" ] ; then
   rm -f $0
   rm -rf .git
+  rm -f hash-embed
 fi
