@@ -3,7 +3,7 @@
 # Embed hash replaces `$Hash$` to `$Hash:{sha224sum}$`
 # When calculating the hash, `$Hash:...$` should be treated as `$Hash$`.
 #
-# Usage: hash-embed updatee-all
+# Usage: hash-embed update-all
 #
 # Sub-commands
 #     calc {files}      calculate new hash value for files
