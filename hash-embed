@@ -10,9 +10,13 @@
 #     extract {files}   extract current hash value from files
 #     update {files}    update hash value in files
 #     list              list target files which have embeded hash
+#
 #     calc-all          calc hash values for files w/ `$Hash$` tag
 #     extract-all       extract hash values from files w/ `$Hash$` tag
 #     update-all        update hash values in files w/ `$Hash$` tag
+#
+#     copy              copy files w/`$Hash$` tag to current directory
+#     clean-backup      remove *.bak files created by copy sub command
 
 set -eu
 
@@ -84,6 +88,30 @@ subcmd_update_all() {
   subcmd_update $(list)
 }
 
+subcmd_copy() {
+  srcdir=$(dirname "$0")
+  files=$( cd $srcdir && list )
+  for file in $files ; do
+    if [ -f "$file" ] ; then
+      rm -f "$file.bak"
+      mv "$file" "$file.bak"
+      cp "${srcdir}/${file}" "$file"
+      echo "copy new version of ${file}, saved old version as ${file}.bak"
+    else
+      cp "${srcdir}/${file}" "$file"
+      echo "copy new version of ${file}"
+    fi
+  done
+}
+
+subcmd_clean_backup() {
+  srcdir=$(dirname "$0")
+  files=$( cd $srcdir && list )
+  for file in $files ; do
+    rm -f "$file.bak"
+  done
+}
+
 case $1 in
   calc)
     shift
@@ -108,5 +136,11 @@ case $1 in
     ;;
   update-all)
     subcmd_update_all
+    ;;
+  copy)
+    subcmd_copy
+    ;;
+  clean-backup)
+    subcmd_clean_backup
     ;;
 esac
