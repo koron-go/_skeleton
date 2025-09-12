@@ -26,9 +26,9 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
 
-    - run: go test
+    - run: go test ./...
 
     - run: go build
 
 # based on: github.com/koron-go/_skeleton/.github/workflows/go.yml
-# $Hash:f4896f5aa7f5b429ac38ed1459247a517d97de4a198b825bac473ecf$
+# $Hash:3952de744e19b79e8b302bc2ad93637d7b6c53c63caf813f84897781$
