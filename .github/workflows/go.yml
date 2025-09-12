@@ -29,6 +29,7 @@ jobs:
     - run: go test ./...
 
     - name: Build all "main" packages
+      shell: bash
       run: |
         root=$(go list -f '{{.ImportPath}}' .)
         for path in $(go list -f '{{if (eq .Name "main")}}{{.ImportPath}}{{end}}' ./... ) ; do
@@ -38,4 +39,4 @@ jobs:
         done
 
 # based on: github.com/koron-go/_skeleton/.github/workflows/go.yml
-# $Hash:f0c441214f78ceceab26793d65d0078ff16a5c05cfb3567f866ce7f2$
+# $Hash:681012ee2e20780fbb40f995e914299c5f0f438364f8c274f66ee7c8$
