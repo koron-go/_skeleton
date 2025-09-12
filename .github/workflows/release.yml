@@ -10,10 +10,36 @@ env:
 
 jobs:
 
-  build:
+  check:
+    name: Check if the main package exists
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
 
-    name: Build
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v5
+    - uses: actions/setup-go@v6
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Check for main packages
+      id: check
+      run: |
+        if go list -f '{{.Name}}' ./... | grep -q '^main$' ; then
+          echo "Found main package"
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "Not found main package"
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
+  build:
+    name: Build releases
+
+    needs: check
+    if: needs.check.outputs.exists == 'true'
 
     strategy:
       matrix:
@@ -32,6 +58,8 @@ jobs:
           arch: arm64
         - os: ubuntu-24.04-arm
           arch: amd64
+
+    runs-on: ${{ matrix.os }}
 
     steps:
 
@@ -70,21 +98,31 @@ jobs:
         echo "GOOS=${GOOS}" >> $GITHUB_ENV
         echo "GOARCH=${GOARCH}" >> $GITHUB_ENV
         echo "CGO_ENABLED=1" >> $GITHUB_ENV
-        echo "NAME=${NAME}" >> $GITHUB_ENV
         echo "PKGNAME=${NAME}_${VERSION}_${GOOS}_${GOARCH}" >> $GITHUB_ENV
         echo "PKGEXT=${PKGEXT}" >> $GITHUB_ENV
 
-    - name: Build
+    - name: Build all "main" packages
       shell: bash
       run: |
-        go build
+        root=$(go list -f '{{.ImportPath}}' .)
+        for path in $(go list -f '{{if (eq .Name "main")}}{{.ImportPath}}{{end}}' ./... ) ; do
+          dir=".${path#${root}}"
+          printf "building %s\t(%s)\n" $(basename "$path") $dir
+          ( cd "$dir" && go build )
+        done
 
     - name: Archive
       shell: bash
       run: |
-        rm -rf _build/${PKGNAME}
         mkdir -p _build/${PKGNAME}
-        cp -p ${NAME} _build/${PKGNAME}
+
+        root=$(go list -f '{{.ImportPath}}' .)
+        for path in $(go list -f '{{if (eq .Name "main")}}{{.ImportPath}}{{end}}' ./... ) ; do
+          dir=".${path#${root}}"
+          name=$(basename "$path")
+          cp "${dir}/${name}" _build/${PKGNAME}
+        done
+
         cp -p LICENSE _build/${PKGNAME}
         cp -p README.md _build/${PKGNAME}
 
@@ -135,4 +173,4 @@ jobs:
         append_body: true
 
 # based on: github.com/koron-go/_skeleton/.github/workflows/release.yml
-# $Hash:56eff628d6b72f94c7a285454a449fbb0770031e5c3ac82101a2cf65$
+# $Hash:fe61db7be4facce0f6c8d7889e15a933f42f3eef6301da83d440649f$
