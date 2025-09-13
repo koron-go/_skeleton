@@ -8,6 +8,7 @@
 # Sub-commands
 #     calc {files}      calculate new hash value for files
 #     extract {files}   extract current hash value from files
+#     verify {files}    Verify that the file hash value matches
 #     update {files}    update hash value in files
 #     list              list target files which have embeded hash
 #
@@ -113,14 +114,21 @@ subcmd_copy() {
   files=$( cd $srcdir && list )
   for file in $files ; do
     if [ -f "$file" ] ; then
-      rm -f "$file.bak"
-      mv "$file" "$file.bak"
-      cp "${srcdir}/${file}" "$file"
-      echo "copy new version of ${file}, saved old version as ${file}.bak"
-    else
-      cp "${srcdir}/${file}" "$file"
-      echo "copy new version of ${file}"
+      # Create a backup of local files if they have changed
+      if [ $(verify "$file") != "OK" ] ; then
+        rm -f "$file.bak"
+        mv "$file" "$file.bak"
+        cp "${srcdir}/${file}" "$file"
+        echo "${file}: COPIED_WITH_BACKUP"
+        continue
+      fi
+      if [ $(calc "$srcdir/$file") == $(calc "$file") ] ; then
+        echo "${file}: NO_CHANGES"
+        continue
+      fi
     fi
+    cp "${srcdir}/${file}" "$file"
+    echo "${file}: COPIED"
   done
 }
 
