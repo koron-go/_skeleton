@@ -3,21 +3,27 @@
 # Embed hash replaces `$Hash$` to `$Hash:{sha224sum}$`
 # When calculating the hash, `$Hash:...$` should be treated as `$Hash$`.
 #
-# Usage: hash-embed update-all
-#
-# Sub-commands
-#     calc {files}      calculate new hash value for files
-#     extract {files}   extract current hash value from files
-#     verify {files}    Verify that the file hash value matches
-#     update {files}    update hash value in files
-#     list              list target files which have embeded hash
-#
-#     calc-all          calc hash values for files w/ `$Hash$` tag
-#     extract-all       extract hash values from files w/ `$Hash$` tag
-#     update-all        update hash values in files w/ `$Hash$` tag
-#
-#     copy              copy files w/`$Hash$` tag to current directory
-#     clean-backup      remove *.bak files created by copy sub command
+# Example: hash-embed update-all
+
+USAGE=$(cat << '__END__'
+Usage: hash-embed <sub-command> [arguments]
+
+Sub-commands:
+
+    calc {files}      calculate new hash value for files
+    extract {files}   extract current hash value from files
+    verify {files}    Verify that the file hash values match
+    update {files}    update hash value in files
+    list              list target files which have embeded hash
+
+    calc-all          calc hash values for files w/ `$Hash$` tag
+    extract-all       extract hash values from files w/ `$Hash$` tag
+    update-all        update hash values in files w/ `$Hash$` tag
+
+    copy              copy files w/ `$Hash$` tag to current directory
+    clean-backup      remove *.bak files created by copy sub command
+__END__
+)
 
 set -eu
 
@@ -140,6 +146,10 @@ subcmd_clean_backup() {
   done
 }
 
+subcmd_help() {
+  echo "$USAGE"
+}
+
 case $1 in
   calc)
     shift
@@ -174,5 +184,13 @@ case $1 in
     ;;
   clean-backup)
     subcmd_clean_backup
+    ;;
+  help)
+    subcmd_help
+    eixt 0
+    ;;
+  *)
+    subcmd_help
+    exit 1
     ;;
 esac
