@@ -38,6 +38,20 @@ extract() {
   echo "$hash"
 }
 
+verify() {
+  if [ ! -f "$1" ] ; then
+    echo "NOT_FOUND"
+    return
+  fi
+  want=$(extract "$1")
+  got=$(calc "$1")
+  if [ "$got" == "$want" ] ; then
+    echo "OK"
+  else
+    echo "FAILED"
+  fi
+}
+
 list() {
   grep --exclude='hash-embed*' -lrE '\$Hash(:[^$]*)?\$'
 }
@@ -63,6 +77,12 @@ subcmd_extract() {
   for f in "$@" ; do
     hash=$(extract "$f")
     printf "%-56s  %s\n" "$hash" "$f"
+  done
+}
+
+subcmd_verify() {
+  for f in "$@" ; do
+    printf "%s: %s\n" "$f" $(verify "$f")
   done
 }
 
@@ -120,6 +140,10 @@ case $1 in
   extract)
     shift
     subcmd_extract "$@"
+    ;;
+  verify)
+    shift
+    subcmd_verify "$@"
     ;;
   update)
     shift
