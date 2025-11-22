@@ -10,18 +10,19 @@ Usage: hash-embed <sub-command> [arguments]
 
 Sub-commands:
 
-    calc {files}      calculate new hash value for files
-    extract {files}   extract current hash value from files
+    calc {files}      Calculate new hash value for files
+    extract {files}   Extract current hash value from files
     verify {files}    Verify that the file hash values match
-    update {files}    update hash value in files
-    list              list target files which have embeded hash
+    update {files}    Update hash value in files
+    list              List target files which have embeded hash
 
-    calc-all          calc hash values for files w/ `$Hash$` tag
-    extract-all       extract hash values from files w/ `$Hash$` tag
-    update-all        update hash values in files w/ `$Hash$` tag
+    calc-all          Calc hash values for files w/ `$Hash$` tag
+    extract-all       Extract hash values from files w/ `$Hash$` tag
+    update-all        Update hash values in files w/ `$Hash$` tag
 
     copy              copy files w/ `$Hash$` tag to current directory
     clean-backup      remove *.bak files created by copy sub command
+    gh-search         Search for repos that need (or don't need) updating
 __END__
 )
 
@@ -146,6 +147,48 @@ subcmd_clean_backup() {
   done
 }
 
+subcmd_gh_search() {
+  owner=koron-go
+  file=.github/workflows/go.yml
+  not=NOT
+  verbose=0
+  while getopts o:f:nvh OPT ; do
+    case $OPT in
+      o) owner="$OPTARG" ;;
+      f) file="$OPTARG" ;;
+      n) not="" ;;
+      v) verbose=1 ;;
+      h) subcmd_gh_search_help && exit 0 ;;
+      *) subcmd_gh_search_help && exit 1 ;;
+    esac
+  done
+  srcdir=$(dirname "$0")
+  hash=$(extract "$srcdir/$file")
+  if [ $verbose -ne 0 ] ; then
+    echo -e "Owner: ${owner}\nFile: ${file}\nHash: ${hash}"
+  fi
+  if [ "$hash" == "(not a file)" ] ; then
+    echo "no hashes in the file: ${file}"
+    exit 1
+  fi
+  gh search code --owner "$owner" --filename "$file" --match file $not "$hash"
+}
+
+subcmd_gh_search_help() {
+  cat << '__END__'
+Usage: hash-embed gh-search [OPTIONS]
+
+OPTIONS:
+
+    -o {owner}    Owner or group (default: koron-go)
+    -f {file}     Pivot file for search (default: .github/workflows/go.yml)
+    -n            Search for repos that don't need updating
+
+    -v            Verbose message
+    -h            Show this message
+__END__
+}
+
 subcmd_help() {
   echo "$USAGE"
 }
@@ -189,6 +232,10 @@ case $1 in
     ;;
   clean-backup)
     subcmd_clean_backup
+    ;;
+  gh-search)
+    shift
+    subcmd_gh_search "$@"
     ;;
   help)
     subcmd_help
