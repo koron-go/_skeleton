@@ -20,13 +20,19 @@ Sub-commands:
     extract-all       Extract hash values from files w/ `$Hash$` tag
     update-all        Update hash values in files w/ `$Hash$` tag
 
-    copy              copy files w/ `$Hash$` tag to current directory
-    clean-backup      remove *.bak files created by copy sub command
+    copy              Copy files w/ `$Hash$` tag to current directory
+    clean-backup      Remove *.bak files created by copy sub command
+
     gh-search         Search for repos that need (or don't need) updating
+    gh-update {repo}  Update hash embedded files for the repository
+    git-commit        Commit changes to files managed by hash-embed
 __END__
 )
 
 set -eu
+
+SRCNAME=$(realpath "$0")
+SRCDIR=$(dirname "$SRCNAME")
 
 calc() {
   sed -E -e 's/\$Hash:[^$]*\$/\$Hash\$/' "$1" | sha224sum | cut -f 1 -d ' '
@@ -61,7 +67,7 @@ verify() {
 }
 
 list() {
-  grep --exclude='hash-embed*' -lrE '\$Hash(:[^$]*)?\$'
+  grep --exclude='hash-embed*' --exclude-dir=tmp -lrE '\$Hash(:[^$]*)?\$'
 }
 
 update() {
@@ -117,31 +123,29 @@ subcmd_update_all() {
 }
 
 subcmd_copy() {
-  srcdir=$(dirname "$0")
-  files=$( cd $srcdir && list )
+  files=$( cd "$SRCDIR" && list )
   for file in $files ; do
     if [ -f "$file" ] ; then
       # Create a backup of local files if they have changed
       if [ $(verify "$file") != "OK" ] ; then
         rm -f "$file.bak"
         mv "$file" "$file.bak"
-        cp "${srcdir}/${file}" "$file"
+        cp "${SRCDIR}/${file}" "$file"
         echo "${file}: COPIED_WITH_BACKUP"
         continue
       fi
-      if [ $(calc "$srcdir/$file") == $(calc "$file") ] ; then
+      if [ $(calc "$SRCDIR/$file") == $(calc "$file") ] ; then
         echo "${file}: NO_CHANGES"
         continue
       fi
     fi
-    cp "${srcdir}/${file}" "$file"
+    cp "${SRCDIR}/${file}" "$file"
     echo "${file}: COPIED"
   done
 }
 
 subcmd_clean_backup() {
-  srcdir=$(dirname "$0")
-  files=$( cd $srcdir && list )
+  files=$( cd "$SRCDIR" && list )
   for file in $files ; do
     rm -f "$file.bak"
   done
@@ -162,8 +166,7 @@ subcmd_gh_search() {
       *) subcmd_gh_search_help && exit 1 ;;
     esac
   done
-  srcdir=$(dirname "$0")
-  hash=$(extract "$srcdir/$file")
+  hash=$(extract "$SRCDIR/$file")
   if [ $verbose -ne 0 ] ; then
     echo -e "Owner: ${owner}\nFile: ${file}\nHash: ${hash}"
   fi
@@ -187,6 +190,67 @@ OPTIONS:
     -v            Verbose message
     -h            Show this message
 __END__
+}
+
+subcmd_gh_update() {
+  repo=$1 ; shift
+  url="git@github.com:${repo}.git"
+  dirname=${repo//\//--}
+  tmpdir="tmp/$dirname"
+  if [ ! -d "$tmpdir" ] ; then
+    echo "Cloning $url to $tmpdir"
+    git clone --quiet --depth 1 "$url" "$tmpdir"
+  fi
+  self=$(realpath "$0")
+  echo "Updating $tmpdir"
+  ( cd "$tmpdir" && subcmd_copy && subcmd_git_commit)
+  echo "Pushing $tmpdir to $url"
+  ( cd "$tmpdir" && git push )
+  echo "Cleaning $tmpdir"
+  rm -rf "$tmpdir"
+}
+
+base_commit_hash() {
+  hash=$(cd "$SRCDIR" && git rev-parse --short HEAD)
+  echo "$hash"
+}
+
+commit_message() {
+  # TODO: Determine the basename from the repository name
+  url=$(git remote get-url origin)
+  url=${url#*:}
+  basename=${url%.git}
+  hash=$(base_commit_hash)
+  message="Update files from ${basename} $(base_commit_hash)"
+  echo "$message"
+}
+
+has_local_changes() {
+  files=$( cd "$SRCDIR" && list )
+  found=0
+  for file in $files ; do
+    bak="$file.bak"
+    if [ -f "$bak" ] ; then
+      echo "Found local changes for: $bak"
+      found=1
+    fi
+  done
+  return $found
+}
+
+subcmd_git_commit() {
+  if ! has_local_changes ; then
+    echo "Please review the changes and delete the backup files to continue."
+    exit 1
+  fi
+  files=$( cd "$SRCDIR" && list )
+  git add $files
+  if git diff-index --quiet HEAD $files ; then
+    echo "No changes, so abort commit."
+    return 0
+  fi
+  git commit -m "$(commit_message)"
+  return 0
 }
 
 subcmd_help() {
@@ -236,6 +300,13 @@ case $1 in
   gh-search)
     shift
     subcmd_gh_search "$@"
+    ;;
+  gh-update)
+    shift
+    subcmd_gh_update "$@"
+    ;;
+  git-commit)
+    subcmd_git_commit
     ;;
   help)
     subcmd_help
