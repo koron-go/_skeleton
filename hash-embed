@@ -205,7 +205,7 @@ subcmd_gh_update() {
   echo "Updating $tmpdir"
   ( cd "$tmpdir" && subcmd_copy && subcmd_git_commit)
   echo "Pushing $tmpdir to $url"
-  ( cd "$tmpdir" && git push )
+  ( cd "$tmpdir" && git push --quiet )
   echo "Cleaning $tmpdir"
   rm -rf "$tmpdir"
 }
@@ -249,7 +249,7 @@ subcmd_git_commit() {
     echo "No changes, so abort commit."
     return 0
   fi
-  git commit -m "$(commit_message)"
+  git commit --quiet -m "$(commit_message)"
   return 0
 }
 
