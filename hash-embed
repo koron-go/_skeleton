@@ -210,18 +210,13 @@ subcmd_gh_update() {
   rm -rf "$tmpdir"
 }
 
-base_commit_hash() {
-  hash=$(cd "$SRCDIR" && git rev-parse --short HEAD)
-  echo "$hash"
-}
-
 commit_message() {
-  # TODO: Determine the basename from the repository name
-  url=$(git remote get-url origin)
+  # Determine the basename from the repository name
+  url=$(cd "$SRCDIR" && git remote get-url origin)
   url=${url#*:}
   basename=${url%.git}
-  hash=$(base_commit_hash)
-  message="Update files from ${basename} $(base_commit_hash)"
+  hash=$(cd "$SRCDIR" && git rev-parse --short HEAD)
+  message="Update files from ${basename} ${hash}"
   echo "$message"
 }
 
