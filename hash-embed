@@ -123,6 +123,7 @@ subcmd_update_all() {
 }
 
 subcmd_copy() {
+  # Copy new or modified files.
   files=$( cd "$SRCDIR" && list )
   for file in $files ; do
     if [ -f "$file" ] ; then
@@ -141,6 +142,17 @@ subcmd_copy() {
     fi
     cp "${SRCDIR}/${file}" "$file"
     echo "${file}: COPIED"
+  done
+  # Delete deleted files from SRCDIR
+  files=$(list)
+  for file in $files ; do
+    case "$file" in
+      *.bak) continue ;;
+    esac
+    if [ ! -e "$SRCDIR/$file" ] ; then
+      echo "${file}: DELETED"
+      rm -f "$file"
+    fi
   done
 }
 
