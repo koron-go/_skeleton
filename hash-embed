@@ -151,7 +151,7 @@ subcmd_copy() {
     esac
     if [ ! -e "$SRCDIR/$file" ] ; then
       echo "${file}: DELETED"
-      rm -f "$file"
+      git rm -qf "$file"
     fi
   done
 }
