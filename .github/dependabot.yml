@@ -12,13 +12,3 @@ updates:
     groups:
       ghthub-actions-group:
         patterns: ["*"]
-
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      go-all-dependencies:
-        patterns: ["*"]
-
-# $Hash:2b8a69882cf27ad1ff43ff8a833decf3d0df54c1effeb8efb5bb8244$
