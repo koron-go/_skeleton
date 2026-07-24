@@ -186,7 +186,7 @@ subcmd_gh_search() {
     echo "no hashes in the file: ${file}"
     exit 1
   fi
-  gh search code --owner "$owner" --filename "$file" --match file $not "$hash"
+  gh search code --owner "$owner" --filename "$file" --match file $not "$hash" --limit 100
 }
 
 subcmd_gh_search_help() {
