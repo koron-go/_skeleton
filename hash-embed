@@ -126,32 +126,37 @@ subcmd_copy() {
   # Copy new or modified files.
   files=$( cd "$SRCDIR" && list )
   for file in $files ; do
-    if [ -f "$file" ] ; then
+    src="$SRCDIR/$file"
+    dst="${file/#_github/.github}"
+    if [ -f "$dst" ] ; then
       # Create a backup of local files if they have changed
-      if [ $(verify "$file") != "OK" ] ; then
-        rm -f "$file.bak"
-        mv "$file" "$file.bak"
-        cp "${SRCDIR}/${file}" "$file"
-        echo "${file}: COPIED_WITH_BACKUP"
+      if [ $(verify "$dst") != "OK" ] ; then
+        rm -f "$dst.bak"
+        mv "$dst" "$dst.bak"
+        cp "$src" "$dst"
+        echo "${dst}: COPIED_WITH_BACKUP"
         continue
       fi
-      if [ $(calc "$SRCDIR/$file") == $(calc "$file") ] ; then
-        echo "${file}: NO_CHANGES"
+      if [ $(calc "$src") == $(calc "$dst") ] ; then
+        echo "$dst: NO_CHANGES"
         continue
       fi
     fi
-    cp "${SRCDIR}/${file}" "$file"
-    echo "${file}: COPIED"
+    cp "$src" "$dst"
+    echo "$dst: COPIED"
   done
   # Delete deleted files from SRCDIR
   files=$(list)
   for file in $files ; do
+    dst="$file"
+    src="$SRCDIR/$file"
+    src2="$SRCDIR/${file/#.github/_github}"
     case "$file" in
       *.bak) continue ;;
     esac
-    if [ ! -e "$SRCDIR/$file" ] ; then
-      echo "${file}: DELETED"
-      git rm -qf "$file"
+    if [ ! -e "$src" -a ! -e "$src2" ] ; then
+      echo "$dst: DELETED"
+      git rm -qf "$dst"
     fi
   done
 }
@@ -159,6 +164,7 @@ subcmd_copy() {
 subcmd_clean_backup() {
   files=$( cd "$SRCDIR" && list )
   for file in $files ; do
+    file="${file/#_github/.github}"
     rm -f "$file.bak"
   done
 }
@@ -236,6 +242,7 @@ has_local_changes() {
   files=$( cd "$SRCDIR" && list )
   found=0
   for file in $files ; do
+    file="${file/#_github/.github}"
     bak="$file.bak"
     if [ -f "$bak" ] ; then
       echo "Found local changes for: $bak"
@@ -250,8 +257,10 @@ subcmd_git_commit() {
     echo "Please review the changes and delete the backup files to continue."
     exit 1
   fi
-  files=$( cd "$SRCDIR" && list )
-  git add $files
+  files_str=$( cd "$SRCDIR" && list )
+  mapfile -t files <<< "$files_str"
+  files=( "${files[@]/#_github/.github}" )
+  git add "${files[@]}"
   if git diff-index --quiet HEAD $files ; then
     echo "No changes, so abort commit."
     return 0
