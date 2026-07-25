@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+(
+  gh repo list koron \
+    --limit 200 --language go --visibility public --source \
+    --json nameWithOwner -q '.[].nameWithOwner'
+
+  gh repo list koron-go \
+    --limit 100 --language go --visibility public --source \
+    --json nameWithOwner -q '.[].nameWithOwner'
+) | while read -r repo ; do
+  if gh api "repos/$repo/contents/.github/workflows/go.yml" --silent > /dev/null 2>&1 ; then
+    echo "$repo"
+  fi
+done
