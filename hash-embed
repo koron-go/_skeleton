@@ -134,16 +134,16 @@ subcmd_copy() {
         rm -f "$dst.bak"
         mv "$dst" "$dst.bak"
         cp "$src" "$dst"
-        echo "${dst}: COPIED_WITH_BACKUP"
+        echo "  - $dst: COPIED_WITH_BACKUP"
         continue
       fi
       if [ $(calc "$src") == $(calc "$dst") ] ; then
-        echo "$dst: NO_CHANGES"
+        echo "  - $dst: NO_CHANGES"
         continue
       fi
     fi
     cp "$src" "$dst"
-    echo "$dst: COPIED"
+    echo "  - $dst: COPIED"
   done
   # Delete deleted files from SRCDIR
   files=$(list)
@@ -155,7 +155,7 @@ subcmd_copy() {
       *.bak) continue ;;
     esac
     if [ ! -e "$src" -a ! -e "$src2" ] ; then
-      echo "$dst: DELETED"
+      echo "  - $dst: DELETED"
       git rm -qf "$dst"
     fi
   done
@@ -222,8 +222,10 @@ subcmd_gh_update() {
   self=$(realpath "$0")
   echo "Updating $tmpdir"
   ( cd "$tmpdir" && subcmd_copy && subcmd_git_commit)
-  echo "Pushing $tmpdir to $url"
-  ( cd "$tmpdir" && git push --quiet )
+  if [ -n "$(git cherry)" ] ; then
+    echo "Pushing $tmpdir to $url"
+    ( cd "$tmpdir" && git push --quiet )
+  fi
   echo "Cleaning $tmpdir"
   rm -rf "$tmpdir"
 }
