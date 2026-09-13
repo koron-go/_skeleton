@@ -236,7 +236,7 @@ commit_message() {
   url=${url#*:}
   basename=${url%.git}
   hash=$(cd "$SRCDIR" && git rev-parse --short HEAD)
-  message="Update files from ${basename} ${hash}"
+  message="build(skeleton): update files from ${basename} ${hash}"
   echo "$message"
 }
 
