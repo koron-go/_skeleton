@@ -238,7 +238,7 @@ subcmd_gh_update() {
   self=$(realpath "$0")
   echo "Updating $tmpdir"
   ( cd "$tmpdir" && subcmd_copy && subcmd_git_commit)
-  if ! ( cd "$tmpdir" && git cherry > /dev/null 2>&1 ); then
+  if [[ -n $(cd "$tmpdir" && git cherry) ]]; then
     echo "Pushing $tmpdir to $url"
     ( cd "$tmpdir" && git push --quiet )
   fi
