@@ -263,7 +263,7 @@ subcmd_git_commit() {
   mapfile -t files <<< "$files_str"
   files=( "${files[@]/#_github/.github}" )
   git add "${files[@]}"
-  if git diff-index --quiet HEAD $files ; then
+  if git diff-index --quiet HEAD "${files[@]}" ; then
     echo "No changes, so abort commit."
     return 0
   fi
