@@ -124,24 +124,6 @@ subcmd_update_all() {
 }
 
 merge_file() {
-  local newfile="$1"
-  local oldfile="$2"
-  case $1 in
-    .gitignore)
-      if python3 "$SRCDIR/merge-gitignore.py" "$newfile" "$oldfile"; then
-        return 0
-      fi
-      ;;
-    *)
-      if merge_file2 "$newfile" "$oldfile"; then
-        return 0
-      fi
-      ;;
-  esac
-  return 1
-}
-
-merge_file2() {
   local target="$1"
   local bak="$2"
 
@@ -202,7 +184,7 @@ subcmd_copy() {
           echo "  - $dst: MERGED"
           continue
         else
-          echo "  - $dst: COPIED_WITH_BACKUP"
+          echo "  - $dst: CONFLICTED"
           continue
         fi
       fi
