@@ -122,6 +122,17 @@ subcmd_update_all() {
   subcmd_update $(list)
 }
 
+merge_file() {
+  case $1 in
+    .gitignore)
+      if python3 "$SRCDIR/merge-gitignore.py" "$1" "$2"; then
+        return 0
+      fi
+      ;;
+  esac
+  return 1
+}
+
 subcmd_copy() {
   # Copy new or modified files.
   files=$( cd "$SRCDIR" && list )
@@ -134,8 +145,13 @@ subcmd_copy() {
         rm -f "$dst.bak"
         mv "$dst" "$dst.bak"
         cp "$src" "$dst"
-        echo "  - $dst: COPIED_WITH_BACKUP"
-        continue
+        if merge_file "$dst" "$dst.bak"; then
+          echo "  - $dst: MERGED"
+          continue
+        else
+          echo "  - $dst: COPIED_WITH_BACKUP"
+          continue
+        fi
       fi
       if [ $(calc "$src") == $(calc "$dst") ] ; then
         echo "  - $dst: NO_CHANGES"
