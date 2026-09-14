@@ -238,12 +238,12 @@ subcmd_gh_update() {
   self=$(realpath "$0")
   echo "Updating $tmpdir"
   ( cd "$tmpdir" && subcmd_copy && subcmd_git_commit)
-  if [ -n "$(git cherry)" ] ; then
+  if ! ( cd "$tmpdir" && git cherry > /dev/null 2>&1 ); then
     echo "Pushing $tmpdir to $url"
     ( cd "$tmpdir" && git push --quiet )
   fi
   echo "Cleaning $tmpdir"
-  rm -rf "$tmpdir"
+  #rm -rf "$tmpdir"
 }
 
 commit_message() {
