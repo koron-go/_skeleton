@@ -243,7 +243,7 @@ subcmd_gh_update() {
     ( cd "$tmpdir" && git push --quiet )
   fi
   echo "Cleaning $tmpdir"
-  #rm -rf "$tmpdir"
+  rm -rf "$tmpdir"
 }
 
 commit_message() {
