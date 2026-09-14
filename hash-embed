@@ -22,6 +22,7 @@ Sub-commands:
 
     copy              Copy files w/ `$Hash$` tag to current directory
     clean-backup      Remove *.bak files created by copy sub command
+    clean-commit-push Clean backup, commit changes, and push
 
     gh-search         Search for repos that need (or don't need) updating
     gh-update {repo}  Update hash embedded files for the repository
@@ -330,6 +331,11 @@ case $1 in
     ;;
   clean-backup)
     subcmd_clean_backup
+    ;;
+  clean-commit-push)
+    subcmd_clean_backup
+    subcmd_git_commit
+    git push --quiet
     ;;
   gh-search)
     shift
